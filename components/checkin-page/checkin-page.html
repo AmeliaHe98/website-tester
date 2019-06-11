@@ -1,0 +1,332 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+
+<link rel="import" href="../firebase-config/firebase-config.html">
+<link rel="import" href="../lunr-js.html">
+<link rel="import" href="../light-page.html">
+<link rel="import" href="../nw-tags.html">
+<link rel="import" href="../nw-check.html">
+<link rel="import" href="../moment-js.html">
+<link rel="import" href="../hellosign-manager.html">
+
+<dom-module id="checkin-page">
+  <template>
+    <style include="light-page">
+      paper-card {
+        width: 100%;
+        color: black;
+      }
+      paper-item {
+        cursor: pointer;
+      }
+      paper-card h2 {
+        margin-top: 0;
+      }
+      paper-checkbox {
+        width: 100%;
+        margin-top: 16px;
+        box-sizing: border-box;
+
+        text-decoration: none;
+        letter-spacing: 2px;
+        border-radius: 3px;
+        border: none;
+        font-weight: bold;
+        letter-spacing: 3px;
+        padding: 11px 15px;
+        text-transform: uppercase;
+        cursor: pointer;
+
+        border-bottom: 4px solid #D74343;
+        background-color: #FF6B6B;
+
+        --primary-text-color: var(--dark-text-color);
+
+        --paper-checkbox-label: {
+          width: 100%;
+          text-align: center;
+          position: absolute;
+          left: 0;
+          padding-left: 0;
+        };
+
+        transition: background-color 140ms, border-color 140ms;
+      }
+      paper-checkbox[checked] {
+        border-color: #4BAE74;
+        background-color: #90cfaa;
+      }
+      [bad] {
+        color: red;
+      }
+      [good] {
+        color: green;
+      }
+      [warn] {
+        color: orange;
+      }
+      #completions {
+        margin-bottom: 20px;
+      }
+      .completion {
+        padding: 10px;
+        cursor: pointer;
+      }
+      .completion:hover {
+        background-color: rgba(0,0,0,0.1);
+      }
+      .completion[selected] {
+        background-color: rgba(0,0,0,0.2);
+      }
+      .right {
+        float: right;
+      }
+      [hidden] {
+        display: none;
+      }
+      code {
+        font-family: monospace;
+        background-color: rgba(0,0,0,0.9);
+        padding: 6px;
+        color: var(--dark-text-color);
+      }
+      h3 {
+        margin-top: 80px;
+      }
+      paper-card p {
+        font-size: 24pt;
+        text-align: center;
+        text-transform: capitalize;
+        padding: 10px;
+        font-weight: lighter;
+        border-radius: 3px;
+      }
+      paper-card p[warn] {
+        background-color: #f28500;
+        color: white;
+      }
+      paper-card p[danger] {
+        background-color: #D74343;
+        color: white;
+      }
+      p:empty {
+        display: none;
+      }
+      p:first-child {
+        margin-top: 0;
+      }
+      nw-tags {
+        display: inline-block;
+        margin: 16px;
+      }
+
+      #inputs {
+        display: flex;
+        align-items: flex-end;
+      }
+      #form {
+        width: 150px;
+        margin-right: 5px;
+      }
+      #search {
+        flex-grow: 1000;
+      }
+      .card-header {
+        margin-bottom: 30px;
+      }
+      h1 {
+        padding-top: 1em;
+      }
+    </style>
+
+    <h1 title>
+      Check-In
+    </h1>
+
+    <div class="content">
+
+      <center>
+        <p>
+        <small>
+          <b>Shortcuts:</b>
+          Search <code>/</code>, Check-In <code>space</code>
+        </small>
+        </p>
+      </center>
+
+
+      <div id="inputs">
+        <paper-dropdown-menu id="form" label="Form"
+          selected-item-label="{{form}}">
+          <paper-listbox slot="dropdown-content" selected="0">
+            <paper-item>registration</paper-item>
+            <paper-item>mentorexpo</paper-item>
+            <paper-item>volunteer</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-input
+          label="Search" value="{{query}}"
+          id="search"
+          disabled="[[!lunr]]">
+
+          <iron-icon icon="icons:search" prefix></iron-icon>
+        </paper-input>
+      </div>
+
+      <paper-card hidden$="[[!displayID]]">
+        <div class="card-content">
+          <div class="card-header">
+            <a
+              class="right"
+              target="_blank"
+              href="/admin/select/[[form]]/[[displayID]]">
+              <paper-icon-button icon="info-outline"></paper-icon-button>
+            </a>
+
+            <h2>[[heading(display)]]</h2>
+          </div>
+
+          <nw-check checked="[[display.rsvp.going]]">RSVPed Going</nw-check>
+
+          <nw-check checked="[[waiver.title]]">
+            Signed Waiver
+            <template is="dom-if" if="[[waiver.title]]">
+              &mdash; [[waiver.title]]
+            </template>
+          </nw-check>
+
+          <center>
+            <nw-tags tags="[[display.tags]]" disabled></nw-tags>
+          </center>
+
+          <nw-check checked="[[display.rsvp.large_electronic]]">Allowed to bring
+          large electronic</nw-check>
+
+          <template is="dom-if" if="[[display.rsvp.large_electronic]]">
+            <paper-input-container always-float-label>
+              <label slot="label">Large Electronic Reason</label>
+              <span slot="input" class="paper-input-input">
+                [[display.rsvp.large_electronic_reason]]
+              </span>
+            </paper-input-container>
+          </template>
+
+          <paper-textarea
+            always-float-label
+            label="Check In Notes"
+            value="{{display.check_in_notes}}">
+          </paper-textarea>
+
+          <paper-checkbox id="checkbox" checked="{{display.checked_in}}">
+            Checked In
+          </paper-checkbox>
+
+          <paper-checkbox id="waitlist" checked="{{display.dayof_waitlist}}">
+            Day Of Waitlist
+          </paper-checkbox>
+
+          <nw-check checked="[[display.nfc_written]]">NFC Tag Written</nw-check>
+        </div>
+      </paper-card>
+
+      <div id="completions">
+        <template is="dom-repeat" items="[[autocomplete]]">
+          <div class="completion"
+               selected$="[[eq(index, autocompleteIndex)]]"
+               on-tap="handleTap">
+            [[name(registrations, item)]] &lt;[[email(registrations, item)]]&gt;
+          </div>
+        </template>
+      </div>
+
+      <paper-dropdown-menu label="NFC Device" selected-item="{{deviceItem}}">
+        <paper-listbox slot="dropdown-content">
+          <paper-item></paper-item>
+          <template is="dom-repeat" items="[[sortName(devices)]]">
+            <paper-item deviceid="[[item.id]]">
+              <paper-item-body two-line>
+                <div>
+                  [[item.name]] &lt;[[item.email]]&gt;
+                </div>
+                <div secondary>
+                  [[item.manufacturer]] [[item.model]]
+                  - [[item.id]]
+                </div>
+              </paper-item-body>
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+
+      <h2>Helpful Links</h2>
+      <ul>
+        <li>
+          <a target="_blank" href="https://github.com/nwhacks/nfc/releases">NFC Android App</a>
+        </li>
+        <li>
+          <a target="_blank" href="https://app.hellosign.com/s/faca04cc">19+ Waiver</a>
+        </li>
+        <li>
+          <a target="_blank" href="https://app.hellosign.com/s/7e0b0065">Under 19 Waiver </a>
+        </li>
+        <li>
+          <a target="_blank" href="/register">Registration Form</a>
+        </li>
+        <li>
+          <a target="_blank" href="/mentorexpo">Mentor / Expo Judge Form</a>
+        </li>
+        <li>
+          <a target="_blank" href="/volunteer">Volunteer Form</a>
+        </li>
+      </ul>
+
+
+      <h2>HelloSign</h2>
+      <hellosign-manager is-admin="[[isAdmin]]"></hellosign-manager>
+    </div>
+
+
+    <firebase-document disabled="[[!isAdmin]]"
+                    path="/admin/hellosign/[[formatEmail(display.email)]]"
+                    data="{{waiver}}">
+    </firebase-document>
+
+    <firebase-query id="regs"
+                    disabled="[[!isAdmin]]"
+                    path="/form/[[form]]"
+                    data="{{registrations}}">
+    </firebase-query>
+
+    <firebase-document
+      disabled="[[!isAdmin]]"
+      path="/form/[[form]]/[[displayID]]"
+      data="{{display}}">
+    </firebase-document>
+
+    <firebase-query
+      disabled="[[!isAdmin]]"
+      path="/admin/devices"
+      data="{{devices}}">
+    </firebase-query>
+
+    <firebase-document
+      disabled="[[!isAdmin]]"
+      path="/admin/devices/[[deviceid]]"
+      data="{{device}}">
+    </firebase-document>
+  </template>
+
+  <script src="checkin-page.js"></script>
+</dom-module>

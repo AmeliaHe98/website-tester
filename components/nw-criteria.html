@@ -1,0 +1,588 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-a11y-keys/iron-a11y-keys.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/hardware-icons.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="nw-score.html">
+
+<dom-module id="nw-criteria">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      #question, #criteria {
+        padding: 15px;
+      }
+
+      #question {
+        background-color: var(--primary-color);
+        color: var(--dark-text-color);
+        font-weight: bold;
+      }
+
+      #buttons {
+        white-space: nowrap;
+      }
+
+      #question paper-button {
+        color: var(--dark-text-color);
+        border: 2px solid var(--dark-text-color);
+        width: 36px;
+        padding: 5px;
+        text-align: center;
+        border-radius: 2px;
+      }
+
+      #criteria {
+        flex-grow: 10000;
+        overflow: auto;
+        padding-top: 0;
+      }
+
+      #summary {
+        background-color: #eee;
+        padding: 0 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      paper-button {
+        min-width: 0;
+      }
+
+      .question {
+        cursor: pointer;
+        color: var(--secondary-text-color);
+        display: flex;
+      }
+
+      .question[filled] {
+        color: var(--light-text-color);
+      }
+
+      .weight {
+        font-weight: normal;
+        color: var(--secondary-text-color);
+      }
+
+      .question[selected] {
+        color: var(--primary-color);
+        font-weight: bold;
+      }
+
+      h4 {
+        margin-bottom: 10px;
+      }
+
+      nw-score {
+        margin: 0 10px;
+        flex-shrink: 0;
+      }
+
+      #secondaryControls {
+        display: flex;
+        align-items: center;
+      }
+    </style>
+
+    <div id="question">
+      <p>
+      [[selected.name]]
+      </p>
+
+      <div id="buttons">
+        <template is="dom-repeat" items="[[levels(selected.worth)]]">
+          <span>
+            <paper-button on-tap="handleScore">[[item]]</paper-button>
+            <paper-tooltip>
+              ⌨ [[item]]
+            </paper-tooltip>
+          </span>
+        </template>
+      </div>
+    </div>
+
+    <div id="criteria">
+      <template is="dom-if" if="[[criteriaUrl]]">
+        <p>
+        <a target="_blank" href="[[criteriaUrl]]">
+          View Criteria Descriptions
+        </a>
+        </p>
+      </template>
+      <template is="dom-repeat" items="[[questions]]" as="category">
+        <h4>
+          [[category.name]]
+          <template is="dom-if" if="[[displayWeight(category, category.weight, criteria.*)]]">
+            <span class="weight">
+              ×[[displayWeight(category, category.weight, criteria.*)]]
+            </span>
+          </template>
+        </h4>
+
+        <template is="dom-repeat" items="[[category.questions]]">
+          <a on-tap="handleScroll">
+          <div
+            class="question"
+            on-tap="handleSelect"
+            filled$="[[isSet(item.score)]]"
+            selected$="[[isSelected(selected, item)]]">
+
+            <nw-score
+              score="[[criteriaScore(criteria, item.slug, criteria.*)]]"
+              total="[[item.worth]]">
+            </nw-score>
+            <div class="label">
+            [[item.name]]
+            </div>
+          </div>
+          </a>
+        </template>
+      </template>
+    </div>
+
+    <div id="summary">
+      <span>
+        Total
+        <nw-score
+         score="[[criteria.score]]"
+         total="[[criteria.total]]">
+        </nw-score>
+      </span>
+
+      <span id="secondaryControls">
+        <paper-button id="clearCriteria" on-tap="clearCriteria">Clear</paper-button>
+        <paper-tooltip
+          for="clearCriteria"
+          position="top">
+          Resets Criteria
+        </paper-tooltip>
+
+        <paper-icon-button
+          id="viewShortcuts"
+          on-tap="handleViewShortcuts"
+          icon="hardware:keyboard">
+        </paper-icon-button>
+        <paper-tooltip
+          for="viewShortcuts"
+          position="top">
+          Keyboard Shortcuts
+        </paper-tooltip>
+      </span>
+    </div>
+
+    <paper-dialog id="keyboardShortcuts" modal>
+      <h2>Keyboard Shortcuts</h2>
+      <paper-dialog-scrollable>
+        <div>
+          <ul>
+            <li>
+              <p>
+              <code>?</code> - View this help.
+              </p>
+            </li>
+            <li>
+              <p>
+              <code>0-9</code> - Score the current criteria and advance to the
+              next.
+              </p>
+            </li>
+            <li>
+              <p>
+              <code>n</code> - Next criteria.
+              </p>
+            </li>
+            <li>
+              <p>
+              <code>p</code> - Previous criteria.
+              </p>
+            </li>
+            <li>
+              <p>
+              <code>j</code> - Next hacker.
+              </p>
+            </li>
+            <li>
+              <p>
+              <code>k</code> - Previous hacker.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-confirm autofocus>close</paper-button>
+      </div>
+    </paper-dialog>
+
+    <iron-a11y-keys
+      target="[[target]]"
+      keys="0 1 2 3 4 5 6 7 8 9 -"
+      on-keys-pressed="handleKeyScore">
+    </iron-a11y-keys>
+    <iron-a11y-keys
+      target="[[target]]"
+      keys="n"
+      on-keys-pressed="handleNext">
+    </iron-a11y-keys>
+    <iron-a11y-keys
+      target="[[target]]"
+      keys="p"
+      on-keys-pressed="handlePrev">
+    </iron-a11y-keys>
+    <iron-a11y-keys
+      target="[[target]]"
+      keys="?"
+      on-keys-pressed="handleViewShortcuts">
+    </iron-a11y-keys>
+  </template>
+
+  <script>
+
+const pastExperienceName = 'Past Experience'
+
+function experienceWeight (category) {
+  const total = this.categoryTotal(pastExperienceName)
+  if (!total) {
+    return
+  }
+  let weight = undefined
+  if (total <= 5) {
+    weight = 0.8
+  } else if (total <= 8) {
+    weight = 0.85
+  } else if (total <= 10) {
+    weight = 0.9
+  }
+  if (!weight) {
+    return
+  }
+  if (category.name !== pastExperienceName) {
+    weight = 1 - weight
+  }
+  return weight
+}
+
+const questions = [
+  {
+    name: pastExperienceName,
+    questions: [
+      { name: 'Github/Personal Website', worth: 5, field: 'github' },
+      { name: 'Linkedin/Resume', worth: 5, field: 'linkedin' }
+    ],
+    weight: experienceWeight
+  },
+  {
+    name: 'Written Response',
+    questions: [
+      { name: 'What do you want to get out of nwHacks?', worth: 5, field: 'reason' },
+      {
+        name: 'Tell us about a recent project you\'ve worked on that excites you!',
+        worth: 5,
+        field: 'project'
+      }
+    ],
+    weight: experienceWeight
+  },
+  {
+    name: 'Bonus',
+    questions: [
+      {
+        name: 'If you were a piece of technology, what would you be?',
+        worth: 1,
+        bonus: true,
+        field: 'technology'
+      }
+    ],
+    weight: experienceWeight
+  }
+]
+
+class NWCriteria extends Polymer.Element {
+  static get is () { return 'nw-criteria' }
+
+  static get properties () {
+    return {
+      criteriaUrl: {
+        type: String,
+        value: 'https://docs.google.com/document/d/1Rb3VcuFiI33MgC-BTnUHqSZOBMGZ5z2tQZTmnqP0p1Y/edit'
+      },
+
+      questions: {
+        value: questions
+      },
+
+      _questions: {
+        notify: true,
+        computed: 'flattenQuestions(questions)'
+      },
+
+      criteria: {
+        notify: true,
+        type: Object
+      },
+
+      sid: {
+        type: String
+      },
+
+      qid: {
+        notify: true,
+        type: String
+      },
+
+      search: {
+        type: String
+      }
+    }
+  }
+
+  static get observers () {
+    return [
+      'computeScore(_questions, criteria, criteria.*)',
+      'selectDefault(_questions, search)',
+      'reset(_questions, sid)'
+    ]
+  }
+
+  connectedCallback () {
+    super.connectedCallback()
+
+    this.target = document.body
+  }
+
+  displayWeight (category) {
+    const weight = this.weight(category)
+    if (weight) {
+      return weight.toFixed(2)
+    }
+    return weight
+  }
+
+  weight (category) {
+    if (!category.weight) {
+      return
+    }
+    return category.weight.call(this, category)
+  }
+
+  categoryTotal (label) {
+    if (!this.criteria) {
+      return
+    }
+
+    for (const cat of this.questions) {
+      if (cat.name !== label) {
+        continue
+      }
+      let total = 0
+      for (const q of cat.questions) {
+        total += this.criteria[q.slug]
+      }
+      return total
+    }
+  }
+
+  handleViewShortcuts () {
+    this.$.keyboardShortcuts.open()
+  }
+
+  handleNext (e) {
+    this.moveSelected(1)
+  }
+
+  handlePrev (e) {
+    this.moveSelected(-1)
+  }
+
+  handleKeyScore (e) {
+    const key = e.detail.keyboardEvent.key
+    let val = key
+    if (key !== '-') {
+      val = parseInt(key)
+    }
+    this.setScore(val)
+  }
+
+  handleScroll (e) {
+    this.qid = e.model.item.field
+  }
+
+  reset (questions) {
+    if (!this.isSet(this.selected)) {
+      this.setSelected(questions[0])
+      this.qid = questions[0].field
+    }
+
+    if (this.isSet(this.search)) {
+      this.selectDefault(questions)
+    }
+  }
+
+  selectDefault (questions) {
+    for (var i = 0; i < questions.length; i++) {
+      if (questions[i].field == this.search) {
+        this.setSelected(questions[i])
+        this.qid = this.search
+      }
+    }
+  }
+
+  or (a, b) {
+    return a || b
+  }
+
+  isSet (v) {
+    return v !== undefined && v !== null
+  }
+
+  clearCriteria () {
+    this.criteria = {}
+  }
+
+  flattenQuestions (questions) {
+    const flat = []
+    for (const cat of questions) {
+      for (const q of cat.questions) {
+        q.slug = this.slugify(q.name)
+        q.index = flat.length
+        q.category = cat
+        flat.push(q)
+      }
+    }
+
+    return flat
+  }
+
+  levels (max) {
+    const l = []
+    let first = 0
+    if (max > 1) {
+      first = 1
+    }
+    for (let i = first; i <= max; i++) {
+      l.push(i)
+    }
+    l.push('-')
+    return l
+  }
+
+  handleSelect (e) {
+    this.setSelected(e.model.item)
+  }
+
+  setSelected (selected) {
+    this.selected = selected
+  }
+
+  handleScore (e) {
+    const score = e.model.item
+    this.setScore(score)
+  }
+
+  setScore (score) {
+    if (!this.criteria) {
+      this.criteria = {}
+    }
+    if (score === '-') {
+      this.set(['criteria', this.selected.slug], null)
+    } else {
+      if (this.levels(this.selected.worth).indexOf(score) === -1) {
+        return
+      }
+      this.set(['criteria', this.selected.slug], score)
+    }
+    // since criteria questions are split up among people,
+    // moveSelected might be annoying here
+    //this.moveSelected(1)
+
+    this.computeScore()
+  }
+
+  moveSelected (rel) {
+    const i = this.selected.index + rel
+    const q = this._questions[i]
+    if (q) {
+      this.setSelected(q)
+    }
+  }
+
+  computeScore () {
+    if (!this._questions) {
+      return
+    }
+
+    let finished = true
+    let started = false
+    let score = 0
+    let total = 0
+
+    for (const q of this._questions) {
+      const weight = this.weight(q.category) || 1
+      if (!q.bonus) {
+        total += weight * q.worth
+      }
+      if (!this.criteria || !this.criteria.hasOwnProperty(q.slug)
+        || this.criteria[q.slug] === undefined || this.criteria[q.slug] === null) {
+        finished = false
+        continue
+      }
+
+      started = true
+      score += weight * this.criteria[q.slug]
+    }
+
+    if (started) {
+      setTimeout(() => {
+        if (!this.criteria) {
+          this.criteria = {}
+        }
+        this.set('criteria.total', total)
+      }, 1)
+    }
+
+    if (!finished) {
+      this.set('criteria.score', null)
+      return
+    }
+    if (!this.criteria) {
+      this.criteria = {}
+    }
+    this.set('criteria.score', this.roundNumber(score, 4))
+  }
+
+  // https://stackoverflow.com/questions/246193/how-do-i-round-a-number-in-javascript#478445
+  roundNumber (number, digits) {
+    var multiple = Math.pow(10, digits);
+    var rndedNum = Math.round(number * multiple) / multiple;
+    return rndedNum;
+  }
+
+  criteriaScore (criteria, slug) {
+    if (!criteria) {
+      return
+    }
+
+    return criteria[slug]
+  }
+
+  isSelected (selected, item) {
+    return selected === item
+  }
+
+  slugify (str) {
+    return str.replace(/[^a-zA-Z]+/g, ' ').trim().replace(/ /g, '-').toLowerCase()
+  }
+}
+
+customElements.define(NWCriteria.is, NWCriteria)
+  </script>
+</dom-module>

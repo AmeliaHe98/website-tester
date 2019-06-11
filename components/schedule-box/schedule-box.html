@@ -1,0 +1,197 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../moment-js.html">
+<link rel="import" href="../moment-timezone-js.html">
+
+<dom-module id="schedule-box">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+      }
+      .day h1 {
+        padding-top: 20px;
+      }
+      h2,  h3 {
+        --header-color: var(--text-color);
+        margin-top: 0;
+      }
+      .day {
+        margin: 0 15px;
+        text-align: center;
+      }
+      .day .row {
+        text-align: left;
+        display: flex;
+        margin: 30px 0;
+      }
+      .day .time {
+        font-size: 20px;
+        float: left;
+        width: 90px;
+        text-align: left;
+      }
+      .day .row > div {
+        display: inline-block;
+        vertical-align: top;
+      }
+      .day .row > div.location {
+        white-space: nowrap;
+        text-align: right;
+      }
+      .content {
+        min-height: 448px;
+      }
+      .center {
+        text-align: center;
+      }
+      .gcal {
+        margin: 30px 0;
+      }
+      .day .row .name {
+        display: inline-block;
+        font-size: 20px;
+        font-weight: normal;
+      }
+      .day .row .info {
+        display: inline;
+        flex-grow: 1000;
+        margin-left: 30px;
+      }
+      .desc {
+        margin: 4px 0px 0px 0px;
+        line-height: 27px;
+        font-size: 15px;
+        letter-spacing: 0px;
+        font-weight: 500;
+      }
+      .days {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+      }
+    </style>
+    <h1 hidden$="[[!heading]]">[[heading]]</h1>
+    <div class="content">
+      <div class="days">
+        <template is="dom-repeat" items="[[days]]">
+          <div class="day">
+            <h1>[[item.name]]</h1>
+            <div class="card-content">
+              <template is="dom-repeat" items="[[item.events]]">
+                <div class="row">
+                  <h3 class="time">[[item.displayTime]]</h3>
+                  <div class="info">
+                    <h3 class="name">[[item.name]]</h3>
+                    <p class="desc">
+                    [[item.desc]]
+
+                      <template is="dom-repeat" items="[[item.locations]]">
+                        <a target="_blank" href="[[map(item)]]">[[item]]</a>
+                      </template>
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div class="center gcal">
+        <a href="https://calendar.google.com/calendar/embed?src=[[calendar]]&ctz=America/Los_Angeles">Google Calendar</a>
+      </div>
+    </div>
+    <iron-ajax
+      auto
+      url="https://www.googleapis.com/calendar/v3/calendars/[[calendar]]/events?key=%20AIzaSyAdbxoL7d-fe9rFUh898TTCx-ZERREDhKg&timeZone=America/Los_Angeles"
+      handle-as="json"
+      last-response="{{gcal}}"></iron-ajax>
+  </template>
+
+  <script>
+class ScheduleBox extends Polymer.Element {
+  static get is () { return 'schedule-box' }
+  static get properties () {
+    return {
+      heading: {
+        value: "Schedule"
+      },
+      calendar: {
+        value:
+          "outerearth.net_9fvr9v6p4f8r80qvui290ufec0@group.calendar.google.com",
+      },
+      days: {
+        type: Array,
+        computed: 'calendarDisplay(gcal)',
+      },
+      gcal: {
+        type: Object,
+        value: function() { return {} },
+      },
+    }
+  }
+
+  map (location) {
+    return "https://map.nwhacks.io/#"+(location || '').replace(/ /g, '+')
+  }
+
+  calendarDisplay (gcal) {
+    console.log(gcal)
+    if (!gcal || !gcal.items) {
+      return []
+    }
+    var days = {}
+    var daysArr = []
+    gcal.items.forEach((item) => {
+      const time = moment(item.start.dateTime)
+
+      var start = time.tz('America/Los_Angeles')
+      var end = moment(item.end.dateTime).tz('America/Los_Angeles')
+      var dayTitle = start.format("dddd, MMMM DD")
+      var day = days[dayTitle]
+      if (!day) {
+        day = {
+          name: dayTitle,
+          start: start,
+          events: []
+        }
+        daysArr.push(day)
+        days[dayTitle] = day
+      }
+      const locations = (item.location || '').split(',').map(location => location.trim())
+      var event = {
+        name: item.summary,
+        start: start,
+        displayTime: this.displayTime(start),
+        displayTimeEnd: this.displayTime(end),
+        locations: locations,
+        desc: item.description,
+      }
+      if (day.events.length > 0 && day.events[day.events.length-1].start.isSame(event.start)) {
+        event.displayTime = ''
+      }
+      day.events.push(event)
+    })
+    daysArr.sort((a, b) => {
+      return a.start - b.start
+    })
+    daysArr.forEach((day) => {
+      day.events.sort((a, b) => {
+        return a.start - b.start
+      })
+    })
+    console.log(daysArr)
+    return daysArr
+  }
+
+  displayTime (time) {
+    return time.format("h:mm a").toUpperCase()
+  }
+}
+
+customElements.define(ScheduleBox.is, ScheduleBox)
+  </script>
+</dom-module>

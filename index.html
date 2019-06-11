@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width">
+    <link rel="image_src" href="https://www.nwhacks.io/img/og-cover.png" />
+    <meta property="og:description" content="nwHacks 2018 is the BIGGEST hackathon in Western Canada with over 600 hackers coming from around the region at the University of British Columbia."/>
+    <meta property="og:image" content="https://www.nwhacks.io/img/og-cover.png" />
+    <meta property="og:title" content="nwHacks 2018" />
+    <meta property="og:url" content="https://www.nwhacks.io" />
+    <meta property="fb:app_id" content="1656637327959014" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#27AE60" />
+
+    <base href="/">
+    <title>nwHacks 2018</title>
+
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json">
+
+
+    <script>
+      window.Polymer = {rootPath: '/'}
+      // Load and register pre-caching Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('service-worker.js', {
+            scope: Polymer.rootPath,
+          }).then(function(registration) {
+            registration.onupdatefound = function () {
+              var installingWorker = registration.installing
+
+              installingWorker.onstatechange = function () {
+                switch (installingWorker.state) {
+                  case 'installed':
+                    if (navigator.serviceWorker.controller) {
+                      console.log('New version available')
+                      window.notify = {
+                        message: 'New version available',
+                        buttonText: 'Reloading...',
+                        buttonTapHandler: function() {
+                          window.location.reload()
+                        },
+                        duration: 0
+                      }
+                      window.dispatchEvent(new CustomEvent('notify', {
+                        detail: window.notify
+                      }));
+                      window.location.reload();
+                    }
+                    break;
+                  case 'redundant':
+                    console.error('The installing service worker became redundant.')
+                    break
+                  default:
+                    break
+                }
+              }
+            }
+          })
+        })
+      }
+    </script>
+
+    <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+
+    <link rel="import" href="components/main-app/main-app.html">
+
+    <style>
+      
+
+@font-face {
+    font-family: "Overpass Mono";
+    src: url(font/OverpassMono-Bold.ttf) format("truetype");
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu.ttf) format("opentype");
+}
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu-Light.otf) format("opentype");
+    font-weight: 500;
+}
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu-Bold.otf) format("opentype");
+    font-weight: bold;
+}
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu-BoldItalic.otf) format("opentype");
+    font-weight: bold;
+    font-style: italic;
+}
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu-Light.otf) format("opentype");
+    font-weight: 200;
+}
+@font-face {
+    font-family: "Apercu";
+    src: url(https://cdn.rawgit.com/nwhacks/nwhacks2018_static/master/font/Apercu%20Light%20Italic.ttf) format("opentype");
+    font-weight: lighter;
+    font-style: italic;
+}
+body {
+  color: #fff;
+
+  background: rgb(17,23,84); /* Old browsers */
+  background: -moz-linear-gradient(top, rgba(17,23,84,1) 32%, #1C205D 81%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(17,23,84,1) 32%, #1C205D 81%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(17,23,84,1) 32%, #1C205D 81%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#17253F',GradientType=0 ); /* IE6-9 */
+
+  margin: 0;
+  padding-top: 65px;
+  min-height: 100%;
+  background-repeat: no-repeat;
+
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+html {
+  min-height: 100%;
+}
+    </style>
+  </head>
+  <body>
+    <main-app></main-app>
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-72252235-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+  </body>
+</html>

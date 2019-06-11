@@ -1,0 +1,14 @@
+{
+  "name": "lunr.js",
+  "homepage": "https://github.com/olivernn/lunr.js",
+  "version": "2.3.6",
+  "_release": "2.3.6",
+  "_resolution": {
+    "type": "version",
+    "tag": "v2.3.6",
+    "commit": "dc36ead70b7e7039d21601b2376e8c3c3cda4750"
+  },
+  "_source": "https://github.com/olivernn/lunr.js.git",
+  "_target": "^2.0.0",
+  "_originalSource": "lunr.js"
+}

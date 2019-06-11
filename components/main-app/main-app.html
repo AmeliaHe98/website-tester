@@ -1,0 +1,543 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/iron-lazy-pages/iron-lazy-pages.html">
+<link rel="import" href="../../bower_components/iron-location/iron-location.html">
+<link rel="import" href="../../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html">
+
+<link rel="import" href="../firebase-config/firebase-config.html">
+<link rel="import" href="../shared-styles.html">
+<link rel="import" href="../error-dialog.html">
+<link rel="import" href="../nwhacks-footer/nwhacks-footer.html">
+<link rel="import" href="../nw-notifications.html">
+
+<dom-module id="main-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        --primary-color: #27AE60;
+        --header-color: var(--primary-color);
+        --dark-text-color: #fff;
+        --dark-background-color: rgba(35,31,32,0.6);
+        --light-text-color: black;
+        --light-background-color: white;
+        --menu-padding: 15px;
+        --menu-padding-vertical: 10px;
+        --link-color: var(--primary-color);
+        --link-hover-color: #239e57;
+        --link-dark-color: #4BAE74;
+
+        font-size: 14pt;
+
+        --paper-tabs-selection-bar-color: var(--primary-color);
+        --paper-tab-ink: var(--primary-color);
+
+        --paper-badge-background: var(--primary-color);
+
+        --paper-input-container: {
+          padding-bottom: 50px;
+        };
+
+        --paper-input-container-input: {
+          min-height: 1px;
+        };
+
+        --paper-input-container-label: {
+          overflow: visible;
+          white-space: normal;
+        };
+
+        --paper-input-container-label-floating: {
+          padding-bottom: 10px;
+        };
+
+        --paper-font-common-base: {
+          font-family: 'Apercu', 'Roboto', sans-serif !important;
+          -webkit-font-smoothing: antialiased;
+        };
+
+        --paper-font-display4: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 112px;
+          font-weight: 300;
+          letter-spacing: -.044em;
+          line-height: 120px;
+        };
+        --paper-font-display3: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 56px;
+          font-weight: 400;
+          letter-spacing: -.026em;
+          line-height: 60px;
+        };
+        --paper-font-display2: {
+          @apply --paper-font-common-base;
+          font-size: 45px;
+          font-weight: 400;
+          letter-spacing: -.018em;
+          line-height: 48px;
+        };
+        --paper-font-display1: {
+          @apply --paper-font-common-base;
+          font-size: 34px;
+          font-weight: 400;
+          letter-spacing: -.01em;
+          line-height: 40px;
+        };
+        --paper-font-headline: {
+          @apply --paper-font-common-base;
+          font-size: 24px;
+          font-weight: 400;
+          letter-spacing: -.012em;
+          line-height: 32px;
+        };
+        --paper-font-title: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 20px;
+          font-weight: 500;
+          line-height: 28px;
+        };
+        --paper-font-subhead: {
+          @apply --paper-font-common-base;
+          font-size: 14pt;
+          font-weight: 400;
+          line-height: 24px;
+        };
+        --paper-font-body2: {
+          @apply --paper-font-common-base;
+          font-size: 14pt;
+          font-weight: 500;
+          line-height: 24px;
+        };
+        --paper-font-body1: {
+          @apply --paper-font-common-base;
+          font-size: 14pt;
+          font-weight: 400;
+          line-height: 20px;
+        };
+        --paper-font-caption: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 12pt;
+          font-weight: 400;
+          letter-spacing: 0.011em;
+          line-height: 20px;
+        };
+        --paper-font-menu: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 12pt;
+          font-weight: 500;
+          line-height: 24px;
+        };
+        --paper-font-button: {
+          @apply --paper-font-common-base;
+          @apply --paper-font-common-nowrap;
+          font-size: 12pt;
+          font-weight: 500;
+          letter-spacing: 0.018em;
+          line-height: 24px;
+          text-transform: uppercase;
+        };
+        --paper-dropdown-menu: {
+          display: block;
+        };
+
+        font-family: 'Apercu', 'Roboto', sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+
+        --paper-tooltip: {
+          font-size: 0.8em;
+        };
+      }
+
+      paper-toast {
+        font-size: 1em;
+      }
+
+      paper-toast paper-button {
+        color: var(--primary-color);
+      }
+
+      @media (max-width: 768px){
+        #badge {
+          display: none;
+        }
+      }
+
+      #menucontainer, app-header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        z-index: 99;
+      }
+
+      #menu {
+        background-color: var(--light-background-color);
+        color: var(--light-text-color);
+        height: 59px;
+        padding: 6px var(--menu-padding);
+        transition: background-color 0.2s, box-shadow 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap-reverse;
+        overflow: hidden;
+      }
+
+      .spacer {
+        flex-grow: 10000000;
+      }
+
+      #menu paper-icon-button {
+        color: inherit;
+        height: 50px;
+        width: 50px;
+        padding-top: 0;
+        padding-bottom: 0;
+        margin-left: var(--menu-padding);
+        margin-right: calc(var(--menu-padding) - 5px);
+      }
+
+      #menu paper-button {
+        color: inherit;
+        font-size: 15pt;
+        padding: 12px var(--menu-padding);
+        text-transform: none !important;
+        letter-spacing: normal;
+      }
+
+      #menu a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .right {
+        float: right;
+      }
+      #menu a:hover {
+        color: var(--link-hover-color);
+      }
+
+      @media (max-width: 815px) {
+        #menu paper-icon-button {
+          margin-left: calc(var(--menu-padding) / 2);
+          margin-right: calc(var(--menu-padding) / 2);
+        }
+        #menu paper-button {
+          padding: 17px calc(var(--menu-padding) / 2);
+        }
+      }
+
+      a[hidden] {
+        display: none !important;
+      }
+
+      paper-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        --paper-progress-indeterminate-cycle-duration: 5s;
+        --paper-progress-container-color: transparent;
+      }
+    </style>
+
+    <a id="mlh-trust-badge"
+       class="badge"
+       hidden$="[[adminPage(page)]]"
+       style="display:block;max-width:100px;min-width:60px;position:absolute;right:100px;top:50;width:10%;z-index:50;"
+       href="https://mlh.io/seasons/na-2018/events?utm_source=na-2018&amp;utm_medium=TrustBadge&amp;utm_campaign=na-2018&amp;utm_content=black"
+       target="_blank">
+
+      <img id="badge"
+           src="https://s3.amazonaws.com/logged-assets/trust-badge/2018/white.svg"
+           alt="Major League Hacking 2018 Hackathon Season"
+           style="width:100%">
+    </a>
+
+
+    <!--<nav id="menucontainer">-->
+    <app-header reveals condenses fixed>
+      <nw-notifications></nw-notifications>
+
+      <nav id="menu">
+        <a href="/#begin">
+          <paper-icon-button src="/svg/NWHacks-NavBar-Logo.svg"></paper-icon-button>
+        </a>
+
+        <div class="spacer"></div>
+
+        <template is="dom-if" if="[[!adminPage(page)]]">
+          <!--
+          <a href="/dayof" class="med">
+            <paper-button>Day Of</paper-button>
+          </a>
+          -->
+          <a href="https://nwhacks2018.devpost.com/">
+            <paper-button>View hacks</paper-button>
+          </a>
+          <a href="/#intro" class="med">
+            <paper-button>About</paper-button>
+          </a>
+          <a href="/#faq">
+            <paper-button>FAQ</paper-button>
+          </a>
+          <a href="/#calendar" class="med">
+            <paper-button>Schedule</paper-button>
+          </a>
+          <a href="/#sponsors" class="big">
+            <paper-button>Sponsors</paper-button>
+          <!-- </a>
+          <a href="/hiring" class="big">
+            <paper-button>Join the team</paper-button>
+          </a> -->
+          <!--<a href="/#intro" class="big">-->
+            <!--<paper-button>View Hacks</paper-button>-->
+          <!--</a>-->
+        </template>
+        <!--
+        <a href="/register#begin" class="small right">
+          <paper-button>register</paper-button>
+        </a>
+        -->
+        <template is="dom-if" if="[[adminPage(page)]]">
+          <a href="/admin/select">
+            <paper-button>Hackers</paper-button>
+          </a>
+          <a href="/admin/stats">
+            <paper-button>Stats</paper-button>
+          </a>
+          <a href="/admin/checkin">
+            <paper-button>Check-In</paper-button>
+          </a>
+          <a href="/admin/events">
+            <paper-button>Events</paper-button>
+          </a>
+          <a href="/admin/shorturls">
+            <paper-button>Short URLs</paper-button>
+          </a>
+          <a href="/admin/blacklist">
+            <paper-button>Blacklist</paper-button>
+          </a>
+          <a href="/admin/hiring_review">
+            <paper-button>Hiring</paper-button>
+          </a>
+          <a href="/admin/settings">
+            <paper-button>Settings</paper-button>
+          </a>
+          <span>
+            <paper-button on-tap="logout" hidden$="[[!signedIn]]">Logout</paper-button>
+          </span>
+        </template>
+
+        <paper-progress indeterminate disabled="[[!loading]]"></paper-progress>
+      </nav>
+    </app-header>
+
+    <div class="wrapper" id="begin">
+      <iron-lazy-pages
+        id="pages"
+        attr-for-selected="data-route"
+        selected="[[page]]">
+
+        <template is="dom-if" restamp data-route="index">
+          <index-page></index-page>
+        </template>
+        <template is="dom-if" restamp data-route="dayof">
+          <dayof-page></dayof-page>
+        </template>
+        <template is="dom-if" restamp data-route="sponsors">
+          <sponsor-page></sponsor-page>
+        </template>
+        <template is="dom-if" restamp data-route="rsvp">
+          <rsvp-page
+            params="{{params}}"
+            is-admin="[[isAdmin]]"
+            sid="[[subRouteData.page]]">
+          </rsvp-page>
+        </template>
+
+        
+        <template is="dom-if" restamp data-route="hiring">
+            <hiring-page></hiring-page>
+        </template>
+        <template is="dom-if" restamp data-route="hiring_form">
+          <hiring-form is-admin="[[isAdmin]]"></hiring-form>
+        </template>
+        <template is="dom-if" restamp data-route="logistics_role">
+          <logistics-role></logistics-role>
+        </template>
+        <template is="dom-if" restamp data-route="sponsorship_role">
+            <sponsorship-role></sponsorship-role>
+          </template>
+        <template is="dom-if" restamp data-route="marketing_director_role">
+          <marketing-director-role></marketing-director-role>
+        </template>
+        <template is="dom-if" restamp data-route="lead_designer_role">
+          <lead-designer-role></lead-designer-role>
+        </template>
+        <template is="dom-if" restamp data-route="designer_role">
+          <designer-role></designer-role>
+        </template>
+        <template is="dom-if" restamp data-route="writer_role">
+          <writer-role></writer-role>
+        </template>
+        <template is="dom-if" restamp data-route="dev_role">
+          <dev-role></dev-role>
+        </template>
+        <template is="dom-if" restamp data-route="evangelist_role">
+          <evangelist-role></evangelist-role>
+        </template>
+  
+        <template is="dom-if" restamp data-route="register">
+          <register-form is-admin="[[isAdmin]]"></register-form>
+        </template>
+        <template is="dom-if" restamp data-route="register-closed">
+          <register-closed></register-closed>
+        </template>
+        <template is="dom-if" restamp data-route="mentorexpo">
+          <mentorexpo-form is-admin="[[isAdmin]]"></mentorexpo-form>
+        </template>
+        <template is="dom-if" restamp data-route="volunteer">
+          <volunteer-form is-admin="[[isAdmin]]"></volunteer-form>
+        </template>
+
+        <!-- Admin Pages -->
+        <div data-route="admin">
+          <app-route
+            route="{{subRoute}}"
+            pattern="/:page"
+            data="{{subRouteData}}"
+            tail="{{subSubRoute}}">
+          </app-route>
+
+          <iron-lazy-pages
+            attr-for-selected="data-route"
+            selected="[[subPage]]">
+
+            <template is="dom-if" restamp data-route="select">
+              <select-hackers
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </select-hackers>
+            </template>
+            <template is="dom-if" restamp data-route="stats">
+              <stats-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]">
+              </stats-page>
+            </template>
+            <template is="dom-if" restamp data-route="checkin">
+              <checkin-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]">
+              </checkin-page>
+            </template>
+            <template is="dom-if" restamp data-route="settings">
+              <admin-settings
+                is-admin="[[isAdmin]]"
+                user="[[user]]">
+              </admin-settings>
+            </template>
+            <template is="dom-if" restamp data-route="emailtemplates">
+              <emailtemplates-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </emailtemplates-page>
+            </template>
+            <template is="dom-if" restamp data-route="emails">
+              <emails-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </emails-page>
+            </template>
+            <template is="dom-if" restamp data-route="blacklist">
+              <admin-blacklist-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </admin-blacklist-page>
+            </template>
+            <template is="dom-if" restamp data-route="hiring_review">
+              <admin-hiring-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </admin-hiring-page>
+            </template>
+            <template is="dom-if" restamp data-route="events">
+              <admin-events-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </admin-events-page>
+            </template>
+            <template is="dom-if" restamp data-route="shorturls">
+              <admin-shorturls-page
+                is-admin="[[isAdmin]]"
+                user="[[user]]"
+                route="{{subSubRoute}}">
+              </admin-shorturls-page>
+            </template>
+          </iron-lazy-pages>
+        </div>
+
+        <template is="dom-if" restamp data-route="notfound">
+          <notfound-page></notfound-page>
+        </template>
+      </iron-lazy-pages>
+    </div>
+
+    <nwhacks-footer hidden$="[[adminPage(page)]]"></nwhacks-footer>
+
+    <iron-location hash="{{hash}}">
+    </iron-location>
+
+    <app-location
+      route="{{route}}"
+      url-space-regex="^[[rootPath]]">
+    </app-location>
+
+    <app-route
+      route="{{route}}"
+      pattern="[[rootPath]]:page"
+      data="{{routeData}}"
+      tail="{{subRoute}}">
+    </app-route>
+
+    <firebase-config
+      id="auth"
+      is-admin="{{isAdmin}}"
+      user="{{user}}"
+      signed-in="{{signedIn}}"
+      auth="[[adminPage(page)]]">
+    </firebase-config>
+
+    <!-- <error-dialog error="{{error}}"></error-dialog> -->
+
+    <paper-toast
+      id="notify"
+      duration="0"
+      text="[[notify.message]]"
+      opened="[[notify]]">
+
+      <paper-button on-tap="notifyButton">[[notify.buttonText]]</paper-button>
+    </paper-toast>
+  </template>
+
+  <script src="main-app.js"></script>
+</dom-module>

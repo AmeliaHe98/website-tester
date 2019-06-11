@@ -1,0 +1,459 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/maps-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/image-icons.html">
+
+<link rel="import" href="../schedule-box/schedule-box.html">
+<link rel="import" href="../light-page.html">
+
+<dom-module id="dayof-page">
+  <template>
+    <style include="light-page">
+      #twitter {
+        text-align: center;
+      }
+      .grid-container {
+        width : 100%;
+        max-width : 1600px;
+        margin: 0 auto;
+      }
+      paper-button iron-icon {
+        margin: -0.5em 0;
+      }
+      .row:before,
+      .row:after {
+        content:"";
+        display: table ;
+        clear:both;
+      }
+      [class*='col-'] {
+        float: left;
+        min-height: 1px;
+        width: 33.33%;
+        padding: 12px;
+        box-sizing: border-box;
+
+        margin-top: 13px;
+        margin-bottom: 100px;
+      }
+      .row .row [class*='col-'] {
+        margin-bottom: 0;
+        margin-top: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+      h2:first-child {
+        margin-top: 0;
+      }
+      .col-33{
+        width: 33.33%;
+      }
+      .col-50{
+        width: 50%;
+      }
+      .col-66{
+        width: 66.66%;
+      }
+      .col-100{
+        width: 100%;
+      }
+      .top-buttons {
+        padding-top: 50px;
+        display: flex;
+        justify-content: center;
+      }
+      code {
+        font-family: monospace;
+        background-color: rgba(0,0,0,0.5);
+        font-size: 14pt;
+        padding: 6px;
+      }
+      code.block {
+        display: block;
+        margin: 20px 0;
+        padding: 12px;
+      }
+      @media (max-width: 1200px) {
+        .col-33 {
+          width: 70%;
+          margin-right: 15%;
+          margin-left: 15%;
+        }
+        .col-66 {
+          width: 100%;
+        }
+      }
+      @media (max-width: 768px) {
+        .col-33 {
+          width: 100%;
+          margin-right: 0;
+          margin-left: 0;
+        }
+        .col-50 {
+          width: 100%;
+        }
+        .top-buttons {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+      .bottom a {
+        color: #2F794E;
+      }
+      h6 {
+        font-size: 1em;
+        margin: 0.5em 0 0;
+      }
+    </style>
+
+    <div class="top-buttons">
+      <a class="none" target="_blank" href="https://nwhacks2018.devpost.com/"><paper-button class="register">Submit Hack</paper-button></a>
+      <a class="none" target="_blank" href="https://nwhacks4.slack.com"><paper-button class="button">#slack</paper-button></a>
+      <a class="none" target="_blank" href="https://goo.gl/EZd9o6"><paper-button class="button">
+          <iron-icon icon="image:picture-as-pdf"></iron-icon>
+          &nbsp;
+          Info Package
+        </paper-button>
+      </a>
+      <a class="none" target="_blank" href="https://map.nwhacks.io/#LSC"><paper-button class="button">
+          <iron-icon icon="maps:map"></iron-icon>
+          &nbsp;
+          Map
+        </paper-button></a>
+    </div>
+    <div class="grid-container">
+      <div class="row">
+        <div class="col-33">
+          <h1>Important Info</h1>
+
+          <h2>COMMUNICATION</h2>
+          <p>Most of the announcements during the hackathon will be through our Slack. If you don't have an account check your email or ask one of your friends to invite you.</p>
+          <p><a href="https://nwhacks4.slack.com/messages/general/">Slack #general</a></p>
+
+          <h2>NEED HELP?</h2>
+          <p>
+          To find a mentor or ask questions you can visit the
+          <a
+            href="https://nwhacks4.slack.com/messages/ask-mentors/">#ask-mentors
+            Slack channel</a>.
+          </p>
+          <h2>WIFI DETAILS</h2>
+          <p>
+
+          </p>
+          <p>
+          <code class="block">
+            SSID: nwhacks2018 <br>
+            Password: hacksnw123
+            <br> <br>
+            ubcsecure - UBC students
+            <br>
+            eduroam - other partner universities
+          </code></p>
+          <h2>Emergency?</h2>
+          <p>In case of emergency, please call <code>911</code>.</p>
+        </div>
+        <schedule-box class="col-66"></schedule-box>
+      </div>
+      <div class="row">
+        <div id="workshops" class="col-33">
+          <schedule-box heading="Workshops"
+                        calendar="outerearth.net_r1621trcoajdltpp2gqgisgcss@group.calendar.google.com">
+          </schedule-box>
+        </div>
+        <div id="prizes" class="col-33">
+          <h1>Prizes</h1>
+          <center>
+            <p> See entire listing at
+            <a href="https://nwhacks2018.devpost.com/">Devpost</a>.
+            </p>
+          </center>
+          <!--
+          <div class="row">
+            <div class="col-50">
+              <ul class="data-list">
+
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    nwHacks Finalists
+                    (4)
+                  </h6>
+
+                  <p>
+                  </p><p>- 1st place
+                  <br>- 2nd place
+                  <br>- 3rd place
+                  <br>- Popular vote (top project as voted by participants)</p>
+                  <p></p>
+                </li>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Best Node.js App on CockroachDB
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by Cockroach Labs. Prize: $1000 CAD</p>
+                  <p></p>
+                </li>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Most Novel Usage of Mojio's Platform
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by Mojio. Prize: $1000 CAD</p>
+                  <p></p>
+                </li>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Best IoT App
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by CA Technologies. Prizes include:</p>
+
+                  <p>- 3-D printer</p>
+
+                  <p>- Raspberry Pi Complete Kit</p>
+
+                  <p>- Arduino Complete Kit</p>
+                  <p></p>
+                </li>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Best React App
+                    (3)
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by Telus. Multiple tiers to this prize: </p>
+
+                  <p>1st place : Hours of mentoring by some of TELUS team members, interview opportunities, and visit of the TELUS garden Innovative Centre for each team member</p>
+
+                  <p>2nd place: Interview opportunities and visit of the TELUS garden Innovative Centre for each team member</p>
+
+                  <p>3rd place: Swag bags</p>
+                  <p></p>
+                </li>
+              </ul>
+            </div>
+            <div class="col-50">
+              <ul>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Best Use of Azure
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by Microsoft. Winning team receives Raspberry Pis and Surface Arc Touch Mice.</p>
+                  <p></p>
+                </li>
+                <li class="prize">
+                  <h6>
+                    <span class="ss-icon ss-standard ss-star prize-icon"></span>
+                    Most Innovative Use of Data and Open-Source Big Data Technologies
+                  </h6>
+
+                  <p>
+                  </p><p>Sponsored by RBC. Winners to pitch their idea to Highline Beta (a startup co-creation company that launches new ventures) + some swag!</p>
+
+                  <p>Criteria:
+                  <br>- Best use of public data sets
+                  <br>- Best use of open source big data technologies
+                  <br>- Best data driven insights
+                  <br>- Most creative solutions</p>
+                  <p></p>
+                </li>
+              </ul>
+            </div>
+          </div>
+          -->
+        </div>
+        <div id="twitter" class="col-33">
+          <h1>Updates</h1>
+          <p>Updates will be on slack and the notification system, but
+          you can also follow us on Facebook and Twitter.</p>
+          <a id="twitter" class="twitter-timeline" data-link-color="#27AE60" data-height="900" href="https://twitter.com/nwHacks?ref_src=twsrc%5Etfw">Tweets by nwHacks</a>
+        </div>
+      </div>
+
+      <!--
+              <h2>Overall Best</h2>
+              <ul>
+                <li><b>1st Place:</b> Dell Tablets for each team member </li>
+                <li><b>2nd Place:</b> $1,000 CAD for the team </li>
+                <li><b>3rd Place:</b> $500 CAD for the team</li>
+              </ul>
+              <h2>PIA: Best Privacy, Security or Crypto Hack</h2>
+              <p>
+              Hacks will be judged based on: Implementation, Ease of use, and Uniqueness of idea.
+              </p>
+              <ul>
+                <li><b>1st Place:</b> $2,000 for the team</li>
+                <li><b>2nd Place:</b> $1,000 for the team</li>
+                <li><b>3rd Place:</b> $500 for the team</li>
+              </ul>
+              <h2>Orbis: Solving or Improving a Social Problem Using Data Analytics</h2>
+              <ul>
+                <li>$400 for the team</li>
+              </ul>
+              <h2>Best App using Microsoft Azure</h2>
+              <ul>
+                <li>HP Pro Tablet for each team member</li>
+              </ul>
+              <h2>Best Use of Wolfram Technology</h2>
+              <ul>
+                <li>1 year of Wolfram Development Platform (Developer Level) </li>
+                <li>1 year of Wolfram Mathematica Student Edition </li>
+                <li>1 year subscription to Computational Knowledge Engine (Wolfram|Alpha Pro)</li>
+              </ul>
+              <h2>Best Use of Google APIs</h2>
+              <ul>
+                <li>Chromecast for each team member</li>
+              </ul>
+            </div>
+            <div class="col-50">
+              <h2>CA Technologies: Best IoT App with Mobile Interface</h2>
+              <ul>
+                <li>Drone for each team member</li>
+              </ul>
+              <h2> MLH: Best Domain Name from Domain.com</h2>
+              <ul>
+                <li>Swag Bags with Sparkfun Redboards</li>
+              </ul>
+              <h2>MLH: Best Use of AWS</h2>
+              <ul>
+                <li>1TB hard drive for each team member</li>
+              </ul>
+              <h2>MLH: Best Developer Tool</h2>
+              <ul>
+                <li>GitHub Octocat statue</li>
+              </ul>
+              <h2>Indico: Best use of API and Machine Learning</h2>
+              <ul>
+                <li>$1,000 Indico API credit for each team member</li>
+              </ul>
+              <h2> Zenefits</h2>
+              <ul>
+                <li> Backpack for each team member </li>
+              </ul>
+              <h2>JetBrains</h2>
+              <ul>
+                <li>IntelliJ IDEA Ultimate personal license for each team member</li>
+              </ul>
+              <h2> Archiact</h2>
+              <ul>
+                <li> 30 tickets to CVR </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row bottom">
+        <div id="hardware" class="col-50">
+          <h1>HARDWARE</h1>
+          <p>
+          Due to limited amount of hardware the availability is not guaranteed.
+          <ul>
+            <li> 4	Alienware 13</li>
+            <li>  6	Arduino Uno</li>
+            <li>  10	Base Shield</li>
+            <li>  3	Dell Monitor</li>
+            <li>  2	Dell XPS 13 (Ubuntu)</li>
+            <li>  2	Dell XPS 13 (Windows)</li>
+            <li>  3	Fire Phone</li>
+            <li>  1	Grove Starter Kit</li>
+            <li>  10	Intel Edison</li>
+            <li>  10	Leap Motion</li>
+            <li>  3	Muse Headband</li>
+            <li>  24	Myos</li>
+            <li>  1	Nest Cam</li>
+            <li>  1	Nest Thermostat Kit</li>
+            <li>  12	Oculus Rift DK2</li>
+            <li>  15	Pebble Classic</li>
+            <li>  5	Pebble Time Steel</li>
+            <li>  10	Spark Core</li>
+            <li>  1	TV</li>
+          </ul>
+          </p>
+        </div>
+        <div id="api" class="col-50">
+          <h1>SPONSOR APIs</h1>
+          <p>
+          Check out the APIs provided by our awesome sponsors!
+          </p>
+          <h2>CA Technologies</h2>
+          <p>
+          Digital transformation within the application economy  - from planning to development to management to security.
+          <br>
+          <a href="https://docops.ca.com">https://docops.ca.com</a>
+          </p>
+          <h2>clairfai</h2>
+          <p>
+          Real Solutions, Artificial Intelligence. Understand every image and video with the world's best visual recognition technology.
+          <br>
+          <a href="http://www.clarifai.com/api">https://developer.clarifai.com/signup/nwhacks</a>
+          </p>
+          <h2>Lob</h2>
+          <p>
+          Lob enables you to seamlessly print and mail documents, postcards, checks, and more via an API. Integrate easily into your web or mobile application today.
+          <br>
+          <a href="https://lob.com/docs">https://lob.com/docs</a>
+          </p>
+          <h2>Namecheap</h2>
+          <p>
+          The Namecheap API allows you to build web and desktop applications that integrate with your Namecheap account. It enables you to programmatically perform operations such as domain search, domain registration, SSL purchase etc., from within your application.
+          <br>
+          <a href="https://www.namecheap.com/support/api/intro.aspx">https://www.namecheap.com/support/api/intro.aspx</a>
+          </p>
+          <h2>Wolfram</h2>
+          <p>
+          Access the Wolfram|Alpha platform at multiple levels—from individual results to complete Wolfram|Alpha output pages. The API operates as a high-performance REST-style webservice, with convenient bindings for popular languages and platforms.
+          <br>
+          <a href="http://products.wolframalpha.com/api/">http://products.wolframalpha.com/api/</a>
+          </p>
+        </div>
+      -->
+      </div>
+  </template>
+  <script>
+// First, load the widgets.js file asynchronously
+window.twttr = (function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0],
+    t = window.twttr || {};
+  if (d.getElementById(id)) return;
+  js = d.createElement(s);
+  js.id = id;
+  js.src = "https://platform.twitter.com/widgets.js";
+  fjs.parentNode.insertBefore(js, fjs);
+
+  t._e = [];
+  t.ready = function(f) {
+    t._e.push(f);
+  };
+
+  return t;
+}(document, "script", "twitter-wjs"));
+
+class DayOfPage extends Polymer.Element {
+  static get is () { return 'dayof-page' }
+
+  connectedCallback () {
+    super.connectedCallback()
+
+    window.twttr.ready(() => {
+      window.twttr.widgets.load(this.$.twitter)
+    })
+  }
+}
+
+customElements.define(DayOfPage.is, DayOfPage)
+  </script>
+</dom-module>

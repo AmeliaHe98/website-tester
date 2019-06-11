@@ -1,0 +1,134 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="nw-tag.html">
+
+<dom-module id="nw-tags">
+  <template>
+    <style>
+      nw-tag + paper-icon-button {
+        margin-left: -13px;
+        margin-right: -5px;
+      }
+      .add {
+        cursor: pointer;
+      }
+      paper-icon-button {
+        opacity: 0.3;
+      }
+      paper-icon-button:hover {
+        opacity: 1;
+      }
+    </style>
+
+    <template is="dom-repeat" items="[[list(tags, _allTags, tags.*, tags.*.*)]]">
+      <nw-tag tag="[[nameOrSlug(item)]]"></nw-tag>
+
+      <template is="dom-if" if="[[unlocked(item, disabled)]]">
+        <paper-icon-button icon="clear" on-tap="removeTag">
+        </paper-icon-button>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[!disabled]]">
+      <paper-icon-button icon="label" on-tap="showTags">
+      </paper-icon-button>
+    </template>
+
+    <paper-dialog id="addtag" modal>
+      <h2>Add Tag</h2>
+      <paper-dialog-scrollable>
+        <template is="dom-repeat" items="[[values(_allTags, tags)]]">
+          <template is="dom-if" if="[[!item.locked]]">
+            <p>
+            <nw-tag
+              class="add"
+              on-tap="add"
+              tag="[[nameOrSlug(item)]]">
+            </nw-tag>
+            </p>
+          </template>
+        </template>
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-confirm autofocus>Close</paper-button>
+      </div>
+    </paper-dialog>
+
+    <firebase-document path="/admin/tags"
+                       data="{{_allTags}}">
+    </firebase-document>
+  </template>
+
+  <script>
+class NWTags extends Polymer.Element {
+  static get is () { return 'nw-tags' }
+
+  static get properties () {
+    return {
+      tags: {
+        notify: true,
+        type: Object
+      },
+
+      disabled: {
+        type: Boolean,
+        value: false
+      }
+    }
+  }
+
+  list () {
+    let tags = this.tags
+    let allTags = this._allTags
+    if (!tags) {
+      tags = {}
+    }
+    if (!allTags) {
+      allTags = {}
+    }
+
+    return Object.keys(tags)
+      .filter(key => tags[key])
+      .map(a => allTags[a])
+  }
+
+  values (allTags, tags) {
+    if (!tags) {
+      tags = {}
+    }
+
+    return Object.values(allTags || {}).filter(a => !tags.hasOwnProperty(a.name))
+  }
+
+  unlocked (tag, disabled) {
+    return !disabled && !tag.locked
+  }
+
+  nameOrSlug (a) {
+    return a.name || a.slug
+  }
+
+  showTags () {
+    this.$.addtag.open()
+  }
+
+  add (e) {
+    if (!this.tags) {
+      this.tags = {}
+    }
+    this.set(['tags', e.model.item.slug || e.model.item.name], true)
+    this.$.addtag.close()
+  }
+
+  removeTag (e) {
+    this.set(['tags', e.model.item.slug || e.model.item.name], null)
+  }
+}
+
+customElements.define(NWTags.is, NWTags)
+  </script>
+</dom-module>

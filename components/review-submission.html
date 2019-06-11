@@ -1,0 +1,400 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/paper-input/paper-input-container.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../bower_components/marked-element/marked-element.html">
+
+<link rel="import" href="moment-js.html">
+<link rel="import" href="nw-comments.html">
+<link rel="import" href="nw-criteria.html">
+<link rel="import" href="nw-viewing.html">
+<link rel="import" href="document-viewer.html">
+<link rel="import" href="nw-tags.html">
+<link rel="import" href="nw-email.html">
+
+<dom-module id="review-submission">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: flex;
+          overflow: hidden;
+      }
+      :host([hidden]) {
+        display: none;
+      }
+
+      #tabs {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 10000;
+        overflow: hidden;
+      }
+
+      paper-tabs {
+        flex-shrink: 0;
+      }
+
+      #content {
+        flex-grow: 10000;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      nw-comments {
+        flex-grow: 10000;
+        padding: 16px 16px 0;
+      }
+
+      .pad {
+        padding: 16px;
+      }
+
+      document-viewer {
+        flex-grow: 10000;
+      }
+
+      #actions {
+        padding: 16px;
+        border-top: 1px
+      }
+
+      #criteria {
+        flex-grow: 0;
+        flex-shrink: 0;
+        flex-basis: 337px;
+        border-right: 1px solid #eee;
+      }
+
+      .right {
+        float: right;
+      }
+    </style>
+
+    <template is="dom-if" if="[[!hacker.rsvp]]">
+      <nw-criteria
+        id="criteria"
+        sid="[[sid]]"
+        criteria="{{hacker.criteria}}"
+        qid="{{qid}}"
+        _questions="{{_questions}}"
+        search="[[search]]">
+      </nw-criteria>
+    </template>
+
+    <div id="tabs">
+      <paper-tabs selected="{{selected}}" attr-for-selected="text-content" scrollable>
+        <paper-tab>Info</paper-tab>
+
+        <template is="dom-if" if="[[hacker.rsvp]]">
+          <paper-tab>RSVP</paper-tab>
+        </template>
+
+        <template is="dom-if" if="[[hacker.resume]]">
+          <paper-tab>Resume</paper-tab>
+        </template>
+
+        <paper-tab>
+          <span id="comments">
+            Comments
+            &nbsp;&nbsp;
+          </span>
+
+          <template
+                is="dom-if"
+                if="[[numComments(hacker.comments, hacker.comments.*)]]">
+            <paper-badge
+                for="comments"
+                label="[[numComments(hacker.comments, hacker.comments.*)]]">
+            </paper-badge>
+          </template>
+
+        </paper-tab>
+
+        <paper-tab>Email</paper-tab>
+      </paper-tabs>
+
+      <div id="content">
+        <template is="dom-if" if="[[eq(selected, 'Info')]]">
+          <div id="info" class="pad">
+            <template is="dom-repeat" items="[[questions]]">
+              <template is="dom-if" if="[[has(hacker, item.name)]]">
+                <paper-input-container id="[[item.name]]" always-float-label>
+                  <label slot="label">[[item.label]]</label>
+                  <span slot="input" class="paper-input-input">
+                    <template is="dom-if" if="[[linkField(hacker, item.name, hacker.*)]]">
+                      <a target="_blank" href="[[linkField(hacker, item.name, hacker.*)]]">
+                        [[get(hacker, item.name, hacker.*)]]
+                      </a>
+                    </template>
+
+                    <template is="dom-if" if="[[!linkField(hacker, item.name, hacker.*)]]">
+                      <template is="dom-if" if="[[markdownField(item.type)]]">
+                        <marked-element
+                          markdown="[[get(hacker, item.name, hacker.*)]]"
+                          breaks
+                          smartypants
+                          on-marked-render-complete="handleRender"
+                          sanitize>
+                          <div slot="markdown-html"></div>
+                        </marked-element>
+                      </template>
+                      <template is="dom-if" if="[[!markdownField(item.type)]]">
+                        [[get(hacker, item.name, hacker.*)]]
+                      </template>
+                    </template>
+                  </span>
+                </paper-input-container>
+              </template>
+            </template>
+          </div>
+        </template>
+
+        <template is="dom-if" if="[[eq(selected, 'RSVP')]]">
+          <div class="pad">
+            <code><pre>[[stringify(hacker.rsvp)]]</pre></code>
+          </div>
+        </template>
+
+        <template is="dom-if" if="[[eq(selected, 'Resume')]]">
+          <document-viewer src="[[resumeLink(hacker.resume)]]"></document-viewer>
+        </template>
+
+        <template is="dom-if" if="[[eq(selected, 'Comments')]]">
+          <nw-comments
+            comments="{{hacker.comments}}"
+            name="[[name]]"
+            email="[[email]]">
+          </nw-comments>
+        </template>
+
+        <template is="dom-if" if="[[eq(selected, 'Email')]]">
+          <div class="pad">
+            <nw-email
+              disabled="[[disabled]]"
+              args="[[emailArgs(sid, hacker)]]">
+            </nw-email>
+          </div>
+        </template>
+      </div>
+
+      <div id="actions">
+        <template is="dom-if" if="[[!hacker.acceptance_sent]]">
+          <select on-change="onSelect">
+            <template is="dom-repeat" items="[[categories]]">
+              <option selected$="[[eq(item, hacker.status)]]">[[item]]</option>
+            </template>
+          </select>
+        </template>
+
+        <paper-checkbox checked="{{hacker.checked_in}}" on-change="checkIn">Checked In</paper-checkbox>
+
+        <a href="/rsvp/{{sid}}" target="_blank">RSVP</a>
+
+        <span class="right">
+          <nw-tags
+            disabled="[[disabled]]"
+            tags="{{hacker.tags}}"></nw-tags>
+          <span title="[[hacker.submitted]]">[[time(hacker.submitted)]]</span>
+          <a target="_blank" href="[[firebaseLink(form, sid)]]">Firebase</a>
+
+          <nw-viewing
+            viewing
+            viewers="{{hacker.viewers}}"
+            position="left"
+            disabled="[[!hacker.first_name]]"
+            name="[[name]]"
+            email="[[email]]">
+          </nw-viewing>
+        </span>
+      </div>
+    </div>
+
+    <firebase-document
+           path="[[submissionPath(form, sid)]]"
+           disabled="[[disabled]]"
+           sequential-transactions
+           data="{{hacker}}">
+    </firebase-document>
+  </template>
+  <script>
+
+class ReviewSubmission extends Polymer.Element {
+  static get is () { return 'review-submission' }
+
+  static get properties () {
+    return {
+      form: {
+        type: String
+      },
+
+      sid: {
+        type: String
+      },
+
+      selected: {
+        type: String
+      },
+
+      hacker: {
+        type: Object,
+        notify: true
+      },
+
+      disabled: {
+        type: Boolean,
+        value: false
+      },
+
+      qid: {
+        type: String
+      },
+
+      search: {
+        type: String
+      },
+
+      _questions: {
+        type: Array,
+        notify: true
+      }
+    }
+  }
+
+  static get observers () {
+    return [
+      'reset(sid)',
+      'scrollSubmission(sid, qid, hacker)'
+    ]
+  }
+
+  reset () {
+    this.selected = 'Info'
+  }
+
+  stringify (obj) {
+    return JSON.stringify(obj, '', '  ')
+  }
+
+  handleRender (e) {
+    for (const elem of Array.from(e.target.querySelectorAll("a"))) {
+      elem.target = "_blank"
+    }
+  }
+
+  eq (a, b) {
+    return (a || '').trim() === (b || '').trim()
+  }
+
+  has (hacker, name) {
+    return hacker.hasOwnProperty(name)
+  }
+
+  get (hacker, name) {
+    return hacker[name]
+  }
+
+  submissionPath (form, sid) {
+    if (!form || !sid) {
+      return
+    }
+
+    return '/form/' + form + '/' + sid
+  }
+
+  linkField (hacker, field) {
+    if (field === 'github') {
+      return this.githubLink(hacker.github)
+    } else if (field === 'resume') {
+      return this.resumeLink(hacker.resume)
+    } else if (field === 'linkedin') {
+      return this.linkedinLink(hacker.linkedin)
+    } else if (field === 'personalsite') {
+      return hacker.personalsite
+    }
+  }
+
+  markdownField (type) {
+    return type === 'paper-textarea'
+  }
+
+  firebaseLink (form, id) {
+    if (!id || !form) {
+      return
+    }
+    return 'https://console.firebase.google.com/project/nwhacks-2018/database/data/form/' + form + '/' + id
+  }
+
+  resumeLink (resume) {
+    if (!resume) {
+      return
+    }
+
+    return 'https://firebasestorage.googleapis.com/v0/b/nwhacks-2018.appspot.com/o/' + encodeURIComponent(resume) + '?alt=media'
+  }
+
+  time (time) {
+    if (!time) {
+      return 'never'
+    }
+    return moment(time).fromNow()
+  }
+
+  githubLink (username) {
+    if (!username) {
+      return
+    }
+    if (username.indexOf('github.com') > 0) {
+      return username
+    }
+    return 'https://github.com/' + username
+  }
+
+  linkedinLink (username) {
+    if (!username) {
+      return
+    }
+    if (username.indexOf('linkedin.com') > 0) {
+      return username
+    }
+    return 'https://linkedin.com/in/' + username
+  }
+
+  acceptanceSent (hacker) {
+    return hacker.acceptance_sent && hacker.status === 'accepted'
+  }
+
+  numComments (comments) {
+    return Object.keys(comments || {}).length
+  }
+
+  emailArgs (sid, hacker) {
+    return {
+      to: hacker.email,
+      first_name: hacker.first_name,
+      last_name: hacker.last_name,
+      id: sid
+    }
+  }
+
+  scrollSubmission () {
+    if (!this.qid) {
+      return;
+    }
+
+    setTimeout(() => {
+      var ele = this.shadowRoot.querySelector("#" + this.qid)
+      if (ele != null) {
+        ele.scrollIntoView()
+      }
+    }, 1);
+  }
+}
+
+customElements.define(ReviewSubmission.is, ReviewSubmission)
+  </script>
+</dom-module>
+

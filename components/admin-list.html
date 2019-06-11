@@ -1,0 +1,132 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="moment-js.html">
+
+<dom-module id="admin-list">
+  <template>
+    <style include="shared-styles">
+      #input {
+        display: flex;
+        align-items: center;
+      }
+      paper-input {
+        flex-grow: 10000;
+      }
+    </style>
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Last Accessed</th>
+      </thead>
+      <tbody>
+        <template is="dom-repeat" items="[[list(admins, admins.*)]]">
+          <tr>
+            <td>
+              [[item.body.name]]
+            </td>
+            <td>
+              <a href="mailto:[[item.email]]">[[item.email]]</a>
+            </td>
+            <td>
+              [[ago(item.body.last_accessed)]]
+            </td>
+            <td>
+              <paper-icon-button icon="delete-forever" on-tap="delete"></paper-icon-button>
+            </td>
+            <tr>
+        </template>
+      </tbody>
+    </table>
+
+    <div id="input">
+      <paper-input label="Name" required type="name" auto-validate value="{{name}}">
+      </paper-input>
+      &nbsp;
+      <paper-input label="Email" required type="email" auto-validate value="{{email}}">
+      </paper-input>
+      &nbsp;
+      <paper-button on-tap="submit">Add Admin</paper-button>
+    </div>
+
+    <template is="dom-if" if="[[isAdmin]]">
+      <firebase-document path="/admins"
+                         data="{{admins}}">
+      </firebase-document>
+    </template>
+
+  </template>
+  <script>
+class AdminList extends Polymer.Element {
+  static get is () { return 'admin-list' }
+
+  list (admins) {
+    const l = []
+    for (const id of Object.keys(admins)) {
+      l.push({
+        id: id,
+        email: unescape(id),
+        body: admins[id]
+      })
+    }
+    return l
+  }
+
+  ago (time) {
+    if (!time) {
+      return 'never'
+    }
+    return moment(time).fromNow()
+  }
+
+  validate () {
+    let valid = true
+    for (const e of this.$.input.children) {
+      if (e.validate && !e.validate()) {
+        valid = false
+      }
+    }
+    return valid
+  }
+
+  formatEmail (email) {
+    if (!email) {
+      return
+    }
+    return email.replace(/\./g, '%2E')
+  }
+
+  submit () {
+    if (!this.validate()) {
+      return
+    }
+
+    const email = this.email.toLowerCase()
+    this.set(['admins', this.formatEmail(email)], {
+      name: this.name,
+      email: email,
+    })
+    this.name = ''
+    this.email = ''
+  }
+
+  delete (e) {
+    const admin = e.model.item
+    const name = admin.body.name || ''
+    if (!confirm('Remove admin ' + name + ' (' + admin.email + ')?')) {
+      return
+    }
+    this.set(['admins', admin.id], null)
+  }
+}
+
+customElements.define(AdminList.is, AdminList)
+  </script>
+</dom-module>

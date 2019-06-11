@@ -1,0 +1,68 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="../light-page.html">
+
+<dom-module id="notfound-page">
+  <template>
+    <style include="light-page">
+      .content {
+        text-align: center;
+      }
+    </style>
+
+    <template is="dom-if" if="[[!url.url]]">
+      <h1 title>404 - Page not Found</h1>
+
+      <div class="content">
+        <p>Sorry, that page doesn't seem to exist.</p>
+
+        <a class="none" href="/"><paper-button class="register" id="wide-button">Return Home</paper-button></a>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[url.url]]">
+      <h1 title>Redirecting...</h1>
+
+      <div class="content">
+        <p>Please wait or
+          <a href="[[url.url]]">click here</a>.
+        </p>
+      </div>
+    </template>
+
+    <firebase-document path="/admin/shorturls/[[path]]"
+                       disabled="[[!path]]"
+                       data="{{url}}">
+    </firebase-document>
+  </template>
+  <script>
+class NotFoundPage extends Polymer.Element {
+  static get is () { return 'notfound-page' }
+
+  static get observers () {
+    return [
+      '_navigateTo(url.url)'
+    ]
+  }
+
+  connectedCallback () {
+    super.connectedCallback()
+
+    const path = window.location.pathname.replace(/(^\/+|\/+$)/g, '')
+    this.path = encodeURIComponent(path).replace(/\./g, '%2E')
+  }
+
+  _navigateTo (url) {
+    if (!url) {
+      return
+    }
+
+    window.location.replace(url)
+  }
+}
+
+customElements.define(NotFoundPage.is, NotFoundPage)
+  </script>
+</dom-module>

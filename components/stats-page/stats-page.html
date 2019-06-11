@@ -1,0 +1,123 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../chart-js.html">
+<link rel="import" href="../lodash.html">
+<link rel="import" href="../category-chart.html">
+
+<link rel="import" href="../light-page.html">
+<link rel="import" href="../moment-js.html">
+
+<dom-module id="stats-page">
+  <template>
+    <style include="light-page">
+    table {
+      width: calc(100% - 32px);
+    }
+    table td:first-child {
+      font-weight: bold;
+    }
+    .chart-container {
+      margin: 15px 0;
+      width: 100%;
+      overflow-x: auto;
+    }
+    canvas {
+      background-color: white;
+    }
+    h1 {
+        padding-top: 1em;
+    }
+    </style>
+    <h1 title>
+      Live Registration Stats
+    </h1>
+    <center>
+      <table class="striped">
+        <thead>
+          <th></th>
+          <th>Count</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Total Registrations</td>
+            <td>[[registrationCount]]</td>
+          </tr>
+          <tr>
+            <td>De-duplicated (by email)</td>
+            <td>[[deDupStudents]]</td>
+          </tr>
+          <tr>
+            <td>Accepted</td>
+            <td>[[acceptedStudents]]</td>
+          </tr>
+          <tr>
+            <td>RSVP yes/no</td>
+            <td>[[rsvpStudents]]</td>
+          </tr>
+          <tr>
+            <td>Accepted and Going</td>
+            <td>[[going]]</td>
+          </tr>
+          <tr>
+            <td>Checked-In</td>
+            <td>[[checked_in]]</td>
+          </tr>
+          <tr>
+            <td>NFC Written</td>
+            <td>[[nfc_written]]</td>
+          </tr>
+          <tr>
+            <td>NFC Or Checked In</td>
+            <td>[[nfc_or_checked_in]]</td>
+          </tr>
+        </tbody>
+      </table>
+    </center>
+    </p>
+    <h2>Response</h2>
+    <div class="chart-container">
+      <center>
+        <canvas id="response" width="640" height="480"></canvas>
+      </center>
+    </div>
+    <h2>University</h2>
+    <div class="chart-container">
+      <canvas id="university" width="3000" height="700"></canvas>
+    </div>
+    <h2>City</h2>
+    <div class="chart-container">
+      <canvas id="city" width="3000" height="700"></canvas>
+    </div>
+    <h2>T-Shirt</h2>
+    <p>This is tshirt information for everyone that was accepted and RSVPed.</p>
+    <div class="chart-container">
+      <canvas id="tshirt" width="640" height="480"></canvas>
+    </div>
+
+    <category-chart label="Dietary Restrictions" data="[[dietaryRestrictions]]">
+    </category-chart>
+
+    <category-chart label="Gender" data="[[rsvpGender]]">
+    </category-chart>
+
+    <category-chart label="Faculty" data="[[rsvpFaculty]]">
+    </category-chart>
+
+    <category-chart label="Year" data="[[rsvpYear]]">
+    </category-chart>
+
+    <category-chart label="Passport" data="[[rsvpPassport]]">
+    </category-chart>
+
+    <category-chart label="Majority (Age)" data="[[rsvpMajority]]">
+    </category-chart>
+
+    <firebase-query id="regs"
+                    disabled="[[!isAdmin]]"
+                    path="/form/registration"
+                    data="{{registrations}}">
+    </firebase-query>
+  </template>
+
+  <script src="stats-page.js"></script>
+</dom-module>

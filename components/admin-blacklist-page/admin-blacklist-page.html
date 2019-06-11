@@ -1,0 +1,145 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../moment-js.html">
+
+<dom-module id="admin-blacklist-page">
+  <template>
+    <style include="light-page">
+      #input {
+        display: flex;
+        align-items: center;
+      }
+      paper-input {
+        flex-grow: 10000;
+      }
+      h1 {
+        padding-top: 1em;
+      }
+    </style>
+
+    <h1 title>Blacklist</h1>
+
+    <table>
+      <thead>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Date</th>
+        <th>Reason</th>
+      </thead>
+      <tbody>
+        <template is="dom-repeat" items="[[list(blacklist, blacklist.*)]]">
+          <tr>
+            <td>
+              [[item.body.name]]
+            </td>
+            <td>
+              <a href="mailto:[[item.email]]">[[item.email]]</a>
+            </td>
+            <td>
+              [[ago(item.body.date)]]
+            </td>
+            <td>[[item.body.reason]]</td>
+            <td>
+              <paper-icon-button icon="delete-forever" on-tap="delete"></paper-icon-button>
+            </td>
+            <tr>
+        </template>
+      </tbody>
+    </table>
+
+    <h2>Add</h2>
+
+    <div id="input">
+      <paper-input label="Name" required type="name" auto-validate value="{{name}}">
+      </paper-input>
+      &nbsp;
+      <paper-input label="Email" required type="email" auto-validate value="{{email}}">
+      </paper-input>
+      &nbsp;
+      <paper-input label="Reason" required type="text" auto-validate value="{{reason}}">
+      </paper-input>
+      &nbsp;
+      <paper-button on-tap="submit">Add entry</paper-button>
+    </div>
+
+    <template is="dom-if" if="[[isAdmin]]">
+      <firebase-document path="/admin/blacklist"
+                         data="{{blacklist}}">
+      </firebase-document>
+    </template>
+  </template>
+  <script>
+class AdminBlacklistPage extends Polymer.Element {
+  static get is () { return 'admin-blacklist-page' }
+
+  list (entries) {
+    const l = []
+    for (const id of Object.keys(entries)) {
+      l.push({
+        id: id,
+        email: unescape(id),
+        body: entries[id]
+      })
+    }
+    return l
+  }
+
+  ago (time) {
+    if (!time) {
+      return 'never'
+    }
+    return moment(time).fromNow()
+  }
+
+  validate () {
+    let valid = true
+    for (const e of this.$.input.children) {
+      if (e.validate && !e.validate()) {
+        valid = false
+      }
+    }
+    return valid
+  }
+
+  formatEmail (email) {
+    if (!email) {
+      return
+    }
+    return email.replace(/\./g, '%2E')
+  }
+
+  submit () {
+    if (!this.validate()) {
+      return
+    }
+
+    const email = this.email.toLowerCase()
+    this.set(['blacklist', this.formatEmail(email)], {
+      name: this.name,
+      email: email,
+      reason: this.reason,
+      date: firebase.database.ServerValue.TIMESTAMP
+    })
+    this.name = ''
+    this.email = ''
+    this.reason = ''
+  }
+
+  delete (e) {
+    const entry = e.model.item
+    const name = entry.body.name || ''
+    if (!confirm('Remove from blacklist ' + name + ' (' + entry.email + ')?')) {
+      return
+    }
+    this.set(['blacklist', entry.id], null)
+  }
+}
+customElements.define(AdminBlacklistPage.is, AdminBlacklistPage)
+  </script>
+</dom-module>

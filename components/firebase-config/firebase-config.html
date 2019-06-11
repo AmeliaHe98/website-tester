@@ -1,0 +1,177 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="../error-dialog.html">
+
+<dom-module id="firebase-config">
+  <template>
+    <!-- <error-dialog error="{{error}}"></error-dialog> -->
+
+    <paper-dialog id="signin" modal>
+      <h2>Sign In</h2>
+      <p>Please sign in to continue.</p>
+      <div class="buttons">
+        <template is="dom-repeat" items="[[authProviders]]">
+          <paper-button on-tap="login">[[item]]</paper-button>
+        </template>
+      </div>
+    </paper-dialog>
+
+    <paper-dialog id="verifyEmail" modal>
+      <h2>Verify Email</h2>
+      <p>We need to verify your email. Please check your email for a
+      verification link and then refresh this page.</p>
+      <div class="buttons">
+        <paper-button dialog-confirm autofocus>Close</paper-button>
+      </div>
+    </paper-dialog>
+
+    <firebase-app auth-domain="nwhacks-2018.firebaseapp.com"
+                  name="[[name]]"
+                  database-url="https://nwhacks-2018.firebaseio.com"
+                  storage-bucket="nwhacks-2018.appspot.com"
+                  messaging-sender-id="838873768070"
+                  api-key="AIzaSyATJyN_W5ZJiiaOPwhn8ljIxn85Eo5uQEA">
+    </firebase-app>
+
+    <firebase-auth id="auth"
+                   app-name="[[name]]"
+                   user="{{user}}"
+                   on-error="handleError"
+                   signed-in="{{signedIn}}"
+                   status-known="{{statusKnown}}">
+    </firebase-auth>
+
+    <firebase-document app-name="[[name]]"
+                       path="/admins/[[user.uid]]"
+                       data="{{adminUID}}">
+    </firebase-document>
+    <firebase-document app-name="[[name]]"
+                       path="/admins/[[formatEmail(user.email)]]"
+                       data="{{adminEmail}}">
+    </firebase-document>
+  </template>
+
+  <script>
+class FirebaseConfig extends Polymer.Element {
+  static get is () { return 'firebase-config' }
+
+  static get properties () {
+    return {
+      isAdmin: {
+        notify: true,
+        computed: '_computeIsAdmin(user.emailVerified, adminUID, adminEmail)'
+      },
+
+      statusKnown: { notify: true },
+
+      user: { notify: true },
+
+      signedIn: { notify: true },
+
+      name: {
+        type: String,
+        notify: true
+      },
+
+      auth: {
+        type: Boolean,
+        value: false
+      },
+
+      authProviders: {
+        value: [
+          'Google',
+          'GitHub'
+        ]
+      }
+    }
+  }
+
+  static get observers () {
+    return [
+      'signIn(signedIn, statusKnown, auth)',
+      'warnNotAdmin(signedIn, isAdmin, statusKnown, auth, user.emailVerified)',
+      'warnEmailVerified(signedIn, statusKnown, user.emailVerified, user)',
+      'updateInfo(isAdmin, user.displayName)'
+    ]
+  }
+
+  login (e) {
+    const auth = this.root.querySelector('#auth')
+    const provider = e.model.item.toLowerCase()
+    auth.signInWithPopup(provider).then(() => {
+      this.$.signin.close()
+    }).catch((error) => {
+      this.handleError(null, error)
+    })
+  }
+
+  _computeIsAdmin (emailVerified, adminUID, adminEmail) {
+    if (!emailVerified) {
+      return false
+    }
+
+    return adminUID === true || (adminUID && !!adminUID.email)
+      || adminEmail === true || (adminEmail && !!adminEmail.email)
+  }
+
+  formatEmail (email) {
+    if (!email) {
+      return;
+    }
+    return email.replace(/\./g, '%2E')
+  }
+
+  signIn (signedIn, statusKnown, auth) {
+    if (statusKnown && !signedIn && auth) {
+      this.$.signin.open()
+    }
+  }
+
+  warnEmailVerified (signedIn, statusKnown, emailVerified, user) {
+    if (!signedIn || !statusKnown || emailVerified) {
+      return
+    }
+
+    this.$.verifyEmail.open()
+    user.sendEmailVerification()
+  }
+
+  warnNotAdmin (signedIn, isAdmin, statusKnown, auth, emailVerified) {
+    if (!statusKnown || !auth || !emailVerified) {
+      return
+    }
+    if (signedIn && isAdmin === true) {
+      this.error = null
+    } else if (signedIn) {
+      this.error = 'You are not an admin or data is still loading.'
+    }
+  }
+
+  updateInfo (isAdmin, name) {
+    if (!isAdmin || !name) {
+      return
+    }
+
+    setTimeout(() => {
+      this.set('adminEmail.name', name)
+      this.set('adminEmail.last_accessed', firebase.database.ServerValue.TIMESTAMP)
+    }, 10)
+  }
+
+  handleError (e, err) {
+    this.err = err
+  }
+
+  logout () {
+    this.root.querySelector('#auth').signOut()
+  }
+}
+
+customElements.define(FirebaseConfig.is, FirebaseConfig)
+  </script>
+</dom-module>
